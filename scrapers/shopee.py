@@ -1,4 +1,5 @@
 import requests
+import json
 import re
 
 HEADERS = {
@@ -6,22 +7,33 @@ HEADERS = {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/120.0.0.0 Safari/537.36"
-    )
+    ),
+    "Accept-Language": "pt-BR,pt;q=0.9"
 }
 
 def get_shopee_price(url):
     r = requests.get(url, headers=HEADERS, timeout=20)
     html = r.text
 
-    title_match = re.search(r'"name":"(.*?)"', html)
-    price_match = re.search(r'"price":(\d+)', html)
+    # Captura o JSON interno da Shopee
+    match = re.search(
+        r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
+        html
+    )
 
-    if not title_match or not price_match:
-        print("❌ Shopee: dados não encontrados")
+    if not match:
+        print("❌ Shopee: JSON não encontrado")
         return None
 
-    title = title_match.group(1)
-    price = int(price_match.group(1)) / 100000
+    data = json.loads(match.group(1))
+
+    try:
+        product = data["props"]["pageProps"]["item"]
+        title = product["name"]
+        price = product["price"] / 100000
+    except Exception as e:
+        print("❌ Shopee: erro ao extrair dados", e)
+        return None
 
     return {
         "site": "Shopee",
