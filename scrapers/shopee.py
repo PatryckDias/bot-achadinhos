@@ -15,22 +15,33 @@ def get_shopee_price(url):
     r = requests.get(url, headers=HEADERS, timeout=20)
     html = r.text
 
-    # Captura o JSON interno da Shopee
     match = re.search(
         r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
         html
     )
 
     if not match:
-        print("❌ Shopee: JSON não encontrado")
+        print("❌ Shopee: __NEXT_DATA__ não encontrado")
         return None
 
     data = json.loads(match.group(1))
 
     try:
-        product = data["props"]["pageProps"]["item"]
+        page_props = data["props"]["pageProps"]
+
+        # Tentativa 1 (mais comum)
+        if "item" in page_props:
+            product = page_props["item"]
+        # Tentativa 2 (links SEO)
+        elif "initialData" in page_props and "item" in page_props["initialData"]:
+            product = page_props["initialData"]["item"]
+        else:
+            print("❌ Shopee: estrutura desconhecida")
+            return None
+
         title = product["name"]
         price = product["price"] / 100000
+
     except Exception as e:
         print("❌ Shopee: erro ao extrair dados", e)
         return None
