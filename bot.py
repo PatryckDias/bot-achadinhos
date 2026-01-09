@@ -1,23 +1,31 @@
 import os
 from telegram import Bot
+from products import PRODUCTS
+from scrapers.amazon import get_amazon_price
 
 def main():
-    token = os.getenv("TELEGRAM_TOKEN")
+    bot = Bot(token=os.getenv("TELEGRAM_TOKEN"))
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
-    if not token or not chat_id:
-        raise Exception("Variáveis de ambiente não encontradas")
+    for product in PRODUCTS:
+        if product["site"] == "amazon":
+            data = get_amazon_price(product["url"])
 
-    bot = Bot(token=token)
+            if not data:
+                continue
 
-    mensagem = (
-        "🤖 Bot de Achadinhos ONLINE!\n\n"
-        "✅ GitHub Actions funcionando\n"
-        "✅ Telegram conectado\n"
-        "🚀 Próximo passo: buscar ofertas automaticamente"
-    )
+            msg = (
+                f"🔥 *Oferta Amazon*\n\n"
+                f"{data['title']}\n\n"
+                f"💰 Preço: R$ {data['price']}\n"
+                f"🔗 {data['url']}"
+            )
 
-    bot.send_message(chat_id=chat_id, text=mensagem)
+            bot.send_message(
+                chat_id=chat_id,
+                text=msg,
+                parse_mode="Markdown"
+            )
 
 if __name__ == "__main__":
     main()
