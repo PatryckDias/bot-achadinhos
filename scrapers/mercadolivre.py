@@ -13,7 +13,7 @@ HEADERS = {
 }
 
 
-def fetch_mercadolivre_product(url: str) -> dict | None:
+def get_ml_price(url): str) -> dict | None:
     """
     Busca título, preço atual e preço antigo (se existir)
     de um produto do Mercado Livre.
