@@ -1,7 +1,7 @@
 PRODUCTS = [
     {
         "site": "amazon",
-        "url": "https://www.amazon.com.br/dp/SEU_PRODUTO"
+        "url": "https://www.amazon.com.br/dp/B09G9FPHY6"
     },
     {
         "site": "shopee",
