@@ -9,6 +9,6 @@ PRODUCTS = [
     },
     {
         "site": "mercadolivre",
-        "url": "https://produto.mercadolivre.com.br/SEU_PRODUTO"
+        "url": "https://www.mercadolivre.com.br/playstation-vr-2-ps5-headset-de-realidade-virtual-branco/p/MLB37262251?pdp_filters=item_id:MLB4315715769#is_advertising=true&searchVariation=MLB37262251&backend_model=search-backend&position=1&search_layout=grid&type=pad&tracking_id=f7c20864-66d5-4071-8c77-691435c04676&ad_domain=VQCATCORE_LST&ad_position=1&ad_click_id=YzU1ZjU2NzQtYWE5Mi00MmQyLWI1OGQtZmU3NmU3MWJhNWJk"
     }
 ]
