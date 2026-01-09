@@ -5,7 +5,7 @@ PRODUCTS = [
     },
     {
         "site": "shopee",
-        "url": "https://shopee.com.br/SEU_PRODUTO"
+        "url": "https://shopee.com.br/Ventilador-de-mesa-Arno-50cm-VB50-Xtreme-Force-Breezer-Preto-com-Azul-127v-i.832653363.58200133784"
     },
     {
         "site": "mercadolivre",
