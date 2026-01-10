@@ -1,7 +1,7 @@
 import os
 from telegram import Bot
 from categories import CATEGORIES
-from scrapers.mercadolivre_categoria import get_promos_from_category
+from scrapers.mercadolivre_api import get_promos_from_search
 
 def main():
     bot = Bot(token=os.getenv("TELEGRAM_TOKEN"))
@@ -9,7 +9,8 @@ def main():
 
     for category in CATEGORIES:
         print(f"[BOT] Buscando categoria: {category['name']}")
-        promos = get_promos_from_category(category)
+        promos = get_promos_from_search(category)
+
         print(f"[BOT] Promos retornadas: {len(promos)}")
 
         for p in promos:
