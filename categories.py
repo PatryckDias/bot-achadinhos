@@ -1,13 +1,12 @@
 CATEGORIES = [
     {
-        "name": "Games",
-        "url": "https://www.mercadolivre.com.br/consoles-e-video-games",
-        "max_price": 500
+        "name": "Acessórios Gamer",
+        "url": "https://lista.mercadolivre.com.br/acessorios-gamer_OrderId_PRICE",
+        "max_price": 600
     },
     {
-        "name": "Acessórios Gamer",
-        "url": "https://www.mercadolivre.com.br/acessorios-para-games",
+        "name": "Games PS5",
+        "url": "https://lista.mercadolivre.com.br/jogos-ps5_OrderId_PRICE",
         "max_price": 300
     }
 ]
-
