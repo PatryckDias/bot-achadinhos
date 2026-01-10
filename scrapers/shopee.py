@@ -1,54 +1,38 @@
 import requests
-import json
-import re
 
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
-    ),
-    "Accept-Language": "pt-BR,pt;q=0.9"
-}
+def search_shopee(keyword, max_price):
+    params = {
+        "keyword": keyword,
+        "limit": 20,
+        "newest": 0,
+        "order": "asc",
+        "price_max": max_price
+    }
 
-def get_shopee_price(url):
-    r = requests.get(url, headers=HEADERS, timeout=20)
-    html = r.text
-
-    match = re.search(
-        r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
-        html
+    r = requests.get(
+        "https://shopee.com.br/api/v4/search/search_items",
+        params=params,
+        timeout=15
     )
 
-    if not match:
-        print("❌ Shopee: __NEXT_DATA__ não encontrado")
-        return None
+    if r.status_code != 200:
+        return []
 
-    data = json.loads(match.group(1))
+    items = r.json().get("items", [])
+    results = []
 
-    try:
-        page_props = data["props"]["pageProps"]
+    for i in items:
+        item = i.get("item_basic")
+        if not item:
+            continue
 
-        # Tentativa 1 (mais comum)
-        if "item" in page_props:
-            product = page_props["item"]
-        # Tentativa 2 (links SEO)
-        elif "initialData" in page_props and "item" in page_props["initialData"]:
-            product = page_props["initialData"]["item"]
-        else:
-            print("❌ Shopee: estrutura desconhecida")
-            return None
+        price = item["price"] / 100000
+        if price <= max_price:
+            results.append({
+                "id": str(item["itemid"]),
+                "title": item["name"],
+                "price": price,
+                "url": f"https://shopee.com.br/product/{item['shopid']}/{item['itemid']}"
+            })
 
-        title = product["name"]
-        price = product["price"] / 100000
-
-    except Exception as e:
-        print("❌ Shopee: erro ao extrair dados", e)
-        return None
-
-    return {
-        "site": "Shopee",
-        "title": title,
-        "price": price,
-        "url": url
-    }
+    return results
