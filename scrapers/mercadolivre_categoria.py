@@ -1,24 +1,15 @@
 import requests
 import json
+import re
+from bs4 import BeautifulSoup
 from pathlib import Path
 
-API_URL = "https://api.mercadolibre.com/sites/MLB/search"
-CACHE_FILE = Path("sent_cache.json")
-
 HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
-    ),
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "pt-BR,pt;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Referer": "https://www.mercadolivre.com.br/",
-    "Origin": "https://www.mercadolivre.com.br",
-    "Connection": "keep-alive"
+    "User-Agent": "Mozilla/5.0 (Linux; Android 10)",
+    "Accept-Language": "pt-BR,pt;q=0.9"
 }
 
+CACHE_FILE = Path("sent_cache.json")
 
 
 def load_cache():
@@ -35,57 +26,63 @@ def get_promos_from_category(category):
     sent_cache = load_cache()
     promos = []
 
-    params = {
-        "q": category["query"],
-        "sort": "price_asc",
-        "limit": 15
-    }
+    print(f"[ML MOBILE] Acessando: {category['url']}")
 
     response = requests.get(
-        API_URL,
-        params=params,
+        category["url"],
         headers=HEADERS,
         timeout=30
     )
 
     if response.status_code != 200:
-        print("[ML API] Erro HTTP:", response.status_code)
+        print(f"[ML MOBILE] Erro HTTP: {response.status_code}")
         return promos
 
-    data = response.json()
-    results = data.get("results", [])
+    soup = BeautifulSoup(response.text, "html.parser")
 
-    print(f"[ML API] Resultados encontrados: {len(results)}")
+    items = soup.select("a.ui-search-item__group__element")
 
-    for item in results:
-        mlb_id = item.get("id")
+    print(f"[ML MOBILE] Itens encontrados: {len(items)}")
 
-        if not mlb_id or mlb_id in sent_cache:
+    for item in items:
+        url = item.get("href")
+        if not url:
             continue
 
-        price = item.get("price")
-        original = item.get("original_price")
-
-        if not price or not original:
+        mlb_match = re.search(r"MLB\d+", url)
+        if not mlb_match:
             continue
 
-        discount = int(100 - (price / original * 100))
+        mlb_id = mlb_match.group()
 
-        if discount < category["min_discount"]:
+        if mlb_id in sent_cache:
+            continue
+
+        title = item.select_one("h2")
+        price = item.select_one("span.price-tag-fraction")
+
+        if not title or not price:
+            continue
+
+        try:
+            value = float(price.text.replace(".", "").replace(",", "."))
+        except:
+            continue
+
+        if value > category["max_price"]:
             continue
 
         promos.append({
             "id": mlb_id,
-            "title": item["title"],
-            "price": price,
-            "old_price": original,
-            "discount": discount,
-            "url": item["permalink"],
+            "title": title.text.strip(),
+            "price": value,
+            "url": url,
             "category": category["name"]
         })
 
         sent_cache.add(mlb_id)
 
     save_cache(sent_cache)
-    print(f"[ML API] Promos válidas: {len(promos)}")
+    print(f"[ML MOBILE] Promos válidas: {len(promos)}")
+
     return promos
