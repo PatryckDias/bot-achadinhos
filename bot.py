@@ -1,31 +1,50 @@
-import os
+import time
 from telegram import Bot
-from categories import CATEGORIES
-from scrapers.mercadolivre_api import get_promos_from_search
+from config import *
+from affiliates import *
+from database import *
+from scrapers.mercadolivre import search_ml
+from scrapers.shopee import search_shopee
 
-def main():
-    bot = Bot(token=os.getenv("TELEGRAM_TOKEN"))
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+bot = Bot(token=TELEGRAM_TOKEN)
 
-    for category in CATEGORIES:
-        print(f"[BOT] Buscando categoria: {category['name']}")
-        promos = get_promos_from_search(category)
+SEARCHES = [
+    ("ps5 controle", 300),
+    ("headset gamer", 250),
+    ("ssd nvme", 400)
+]
 
-        print(f"[BOT] Promos retornadas: {len(promos)}")
+while True:
+    for query, max_price in SEARCHES:
 
-        for p in promos:
-            msg = (
-                f"🔥 *PROMOÇÃO – {p['category']}*\n\n"
-                f"{p['title']}\n\n"
-                f"💰 *R$ {p['price']:.2f}*\n"
-                f"🔗 {p['url']}"
-            )
+        for p in search_ml(query, max_price):
+            if already_sent(p["id"]):
+                continue
+
+            url = ml_affiliate(p["url"], ML_AFFILIATE_ID)
 
             bot.send_message(
-                chat_id=chat_id,
-                text=msg,
+                chat_id=TELEGRAM_CHAT_ID,
+                text=f"🔥 *Oferta Mercado Livre*\n\n{p['title']}\n💰 R$ {p['price']:.2f}\n🔗 {url}",
                 parse_mode="Markdown"
             )
 
-if __name__ == "__main__":
-    main()
+            mark_sent(p["id"])
+            time.sleep(5)
+
+        for p in search_shopee(query, max_price):
+            if already_sent(p["id"]):
+                continue
+
+            url = shopee_affiliate(p["url"], SHOPEE_AFFILIATE_ID)
+
+            bot.send_message(
+                chat_id=TELEGRAM_CHAT_ID,
+                text=f"🔥 *Oferta Shopee*\n\n{p['title']}\n💰 R$ {p['price']:.2f}\n🔗 {url}",
+                parse_mode="Markdown"
+            )
+
+            mark_sent(p["id"])
+            time.sleep(5)
+
+    time.sleep(900)  # 15 minutos
