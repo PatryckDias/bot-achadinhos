@@ -9,6 +9,6 @@ PRODUCTS = [
     },
     {
         "site": "mercadolivre",
-        "url": "https://produto.mercadolivre.com.br/MLB-4315715769-playstation-vr2-ps5-_JM"
+        "url": "https://www.mercadolivre.com.br/suporte-mesa-porta-controle-video-game-fone-ps4-ps5-xbox-one/up/MLBU1421716355"
     }
 ]
