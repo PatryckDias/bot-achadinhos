@@ -17,9 +17,12 @@ def main():
             msg = (
                 f"🔥 *PROMOÇÃO – {p['category']}*\n\n"
                 f"{p['title']}\n\n"
-                f"💰 *R$ {p['price']:.2f}*\n"
+                f"💸 De: R$ {p['old_price']:.2f}\n"
+                f"💰 Por: *R$ {p['price']:.2f}*\n"
+                f"📉 Desconto: {p['discount']}%\n\n"
                 f"🔗 {p['url']}"
             )
+
 
             bot.send_message(
                 chat_id=chat_id,
