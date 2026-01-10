@@ -38,7 +38,7 @@ def get_promos_from_category(category):
     params = {
         "q": category["query"],
         "sort": "price_asc",
-        "limit": 20
+        "limit": 15
     }
 
     response = requests.get(
