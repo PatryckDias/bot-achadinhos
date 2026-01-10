@@ -1,12 +1,12 @@
 CATEGORIES = [
     {
         "name": "Acessórios Gamer",
-        "url": "https://m.mercadolivre.com.br/acessorios-para-games",
+        "query": "acessórios gamer ps5",
         "max_price": 300
     },
     {
         "name": "Jogos PS5",
-        "url": "https://m.mercadolivre.com.br/jogos-ps5",
+        "query": "jogo ps5 mídia física",
         "max_price": 250
     }
 ]
