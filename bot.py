@@ -23,4 +23,6 @@ def main():
         BOT.send_message(CHAT_ID, msg, parse_mode="Markdown")
 
 if __name__ == "__main__":
+    print("BOT iniciado")
     main()
+    print("Busca finalizada")
