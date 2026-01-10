@@ -33,4 +33,4 @@ if __name__ == "__main__":
             print("Erro:", e)
 
         print("⏳ Aguardando 10 minutos...")
-        time.sleep(600)   # 10 minutos
+        time.sleep(300)   # 10 minutos
