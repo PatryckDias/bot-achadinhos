@@ -11,9 +11,14 @@ HEADERS = {
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/120.0.0.0 Safari/537.36"
     ),
-    "Accept": "application/json",
-    "Accept-Language": "pt-BR,pt;q=0.9"
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "pt-BR,pt;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Referer": "https://www.mercadolivre.com.br/",
+    "Origin": "https://www.mercadolivre.com.br",
+    "Connection": "keep-alive"
 }
+
 
 
 def load_cache():
