@@ -1,7 +1,8 @@
 import requests
+import json
 import re
 from bs4 import BeautifulSoup
-
+from pathlib import Path
 
 HEADERS = {
     "User-Agent": (
@@ -9,95 +10,74 @@ HEADERS = {
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/120.0.0.0 Safari/537.36"
     ),
-    "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Language": "pt-BR,pt;q=0.9"
 }
 
+CACHE_FILE = Path("sent_cache.json")
 
-def get_ml_price(url):
-    """
-    Busca título, preço atual e preço antigo (se existir)
-    de um produto do Mercado Livre.
-    """
 
-    response = requests.get(url, headers=HEADERS, timeout=30)
+def load_cache():
+    if CACHE_FILE.exists():
+        return set(json.loads(CACHE_FILE.read_text()))
+    return set()
 
+
+def save_cache(cache):
+    CACHE_FILE.write_text(json.dumps(list(cache)))
+
+
+def get_promos_from_category(category):
+    sent_cache = load_cache()
+    promos = []
+
+    response = requests.get(category["url"], headers=HEADERS, timeout=30)
     if response.status_code != 200:
-        print(f"[Mercado Livre] HTTP {response.status_code}")
-        return None
+        return promos
 
-    html = response.text
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(response.text, "html.parser")
+    items = soup.select("li.ui-search-layout__item")
 
-    # ==============================
-    # 🏷️ TÍTULO
-    # ==============================
-    h1 = soup.find("h1")
-    if not h1:
-        print("[Mercado Livre] Título não encontrado")
-        return None
+    for item in items:
+        link = item.find("a", href=True)
+        if not link:
+            continue
 
-    title = h1.get_text(strip=True)
+        url = link["href"].split("#")[0]
 
-    # ==============================
-    # 💰 PREÇO ATUAL
-    # ==============================
-    price = None
+        mlb_match = re.search(r"MLB\d+", url)
+        if not mlb_match:
+            continue
 
-    meta_price = soup.find("meta", {"itemprop": "price"})
-    if meta_price and meta_price.get("content"):
+        mlb_id = mlb_match.group()
+
+        if mlb_id in sent_cache:
+            continue
+
+        title_tag = item.find("h2")
+        price_tag = item.select_one("span.andes-money-amount__fraction")
+
+        if not title_tag or not price_tag:
+            continue
+
         try:
-            price = float(meta_price["content"])
+            price = float(
+                price_tag.text.replace(".", "").replace(",", ".")
+            )
         except ValueError:
-            pass
+            continue
 
-    if price is None:
-        match = re.search(r'"price"\s*:\s*([0-9]+)', html)
-        if match:
-            price = float(match.group(1))
+        if price > category["max_price"]:
+            continue
 
-    if price is None:
-        span_price = soup.select_one("span.andes-money-amount__fraction")
-        if span_price:
-            try:
-                price = float(
-                    span_price.text.replace(".", "").replace(",", ".")
-                )
-            except ValueError:
-                pass
+        promos.append({
+            "id": mlb_id,
+            "title": title_tag.text.strip(),
+            "price": price,
+            "url": url,
+            "category": category["name"]
+        })
 
-    if price is None:
-        print("[Mercado Livre] Preço não encontrado")
-        return None
+        sent_cache.add(mlb_id)
 
-    # ==============================
-    # 💸 PREÇO ANTIGO
-    # ==============================
-    old_price = None
-
-    meta_old = soup.find("meta", {"itemprop": "originalPrice"})
-    if meta_old and meta_old.get("content"):
-        try:
-            old_price = float(meta_old["content"])
-        except ValueError:
-            pass
-
-    if old_price is None:
-        old_span = soup.select_one(
-            "span.andes-money-amount--previous "
-            "span.andes-money-amount__fraction"
-        )
-        if old_span:
-            try:
-                old_price = float(
-                    old_span.text.replace(".", "").replace(",", ".")
-                )
-            except ValueError:
-                pass
-
-    return {
-        "site": "Mercado Livre",
-        "title": title,
-        "price": price,
-        "old_price": old_price,
-        "url": url,
-    }
+    save_cache(sent_cache)
+    return promos
