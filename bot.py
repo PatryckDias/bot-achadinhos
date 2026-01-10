@@ -1,15 +1,22 @@
 import os
-import time
 from telegram import Bot
 from scrapers.mercadolivre_api import get_ml_deals
 
+print("🔥 BOT EXECUTANDO 🔥")
+
 BOT = Bot(os.getenv("TELEGRAM_TOKEN"))
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+getenv("TELEGRAM_CHAT_ID")
 
 def run_bot():
     deals = get_ml_deals("ps5")
 
     print("[BOT] Ofertas encontradas:", len(deals))
+
+def main():
+    print("Buscando ofertas...")
+    deals = get_ml_deals("ps5")
+    print("Ofertas recebidas:", deals)
 
     for d in deals:
         msg = (
@@ -22,6 +29,7 @@ def run_bot():
         )
 
         BOT.send_message(CHAT_ID, msg, parse_mode="Markdown")
+        print("Mensagem enviada")
 
 if __name__ == "__main__":
     print("🤖 Bot iniciado...")
