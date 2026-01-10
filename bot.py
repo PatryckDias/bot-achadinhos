@@ -1,50 +1,26 @@
-import time
+import os
 from telegram import Bot
-from config import *
-from affiliates import *
-from database import *
-from scrapers.mercadolivre import search_ml
-from scrapers.shopee import search_shopee
+from scrapers.mercadolivre_api import get_ml_deals
 
-bot = Bot(token=TELEGRAM_TOKEN)
+BOT = Bot(os.getenv("TELEGRAM_TOKEN"))
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-SEARCHES = [
-    ("ps5 controle", 300),
-    ("headset gamer", 250),
-    ("ssd nvme", 400)
-]
+def main():
+    deals = get_ml_deals("ps5")
 
-while True:
-    for query, max_price in SEARCHES:
+    print("[BOT] Ofertas encontradas:", len(deals))
 
-        for p in search_ml(query, max_price):
-            if already_sent(p["id"]):
-                continue
+    for d in deals:
+        msg = (
+            f"🔥 *OFERTA MERCADO LIVRE*\n\n"
+            f"{d['title']}\n\n"
+            f"💰 De R$ {d['original']:.2f}\n"
+            f"💥 Por R$ {d['price']:.2f}\n"
+            f"📉 {d['discount']}% OFF\n\n"
+            f"🛒 {d['url']}"
+        )
 
-            url = ml_affiliate(p["url"], ML_AFFILIATE_ID)
+        BOT.send_message(CHAT_ID, msg, parse_mode="Markdown")
 
-            bot.send_message(
-                chat_id=TELEGRAM_CHAT_ID,
-                text=f"🔥 *Oferta Mercado Livre*\n\n{p['title']}\n💰 R$ {p['price']:.2f}\n🔗 {url}",
-                parse_mode="Markdown"
-            )
-
-            mark_sent(p["id"])
-            time.sleep(5)
-
-        for p in search_shopee(query, max_price):
-            if already_sent(p["id"]):
-                continue
-
-            url = shopee_affiliate(p["url"], SHOPEE_AFFILIATE_ID)
-
-            bot.send_message(
-                chat_id=TELEGRAM_CHAT_ID,
-                text=f"🔥 *Oferta Shopee*\n\n{p['title']}\n💰 R$ {p['price']:.2f}\n🔗 {url}",
-                parse_mode="Markdown"
-            )
-
-            mark_sent(p["id"])
-            time.sleep(5)
-
-    time.sleep(900)  # 15 minutos
+if __name__ == "__main__":
+    main()
