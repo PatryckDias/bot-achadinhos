@@ -32,47 +32,47 @@ def get_promos_from_category(category):
 
     response = requests.get(category["url"], headers=HEADERS, timeout=30)
     if response.status_code != 200:
+        print("[ML] Erro HTTP", response.status_code)
         return promos
 
     soup = BeautifulSoup(response.text, "html.parser")
+
     items = soup.select("li.ui-search-layout__item")
 
     for item in items:
-        link = item.find("a", href=True)
+        link = item.select_one("a.ui-search-item__group__element")
         if not link:
             continue
 
-        url = link["href"].split("#")[0]
+        url = link.get("href", "").split("#")[0]
 
-        mlb_match = re.search(r"MLB\d+", url)
-        if not mlb_match:
+        mlb = re.search(r"MLB-\d+|MLB\d+", url)
+        if not mlb:
             continue
 
-        mlb_id = mlb_match.group()
+        mlb_id = mlb.group()
 
         if mlb_id in sent_cache:
             continue
 
-        title_tag = item.find("h2")
-        price_tag = item.select_one("span.andes-money-amount__fraction")
+        title = item.select_one("h2.ui-search-item__title")
+        price = item.select_one("span.andes-money-amount__fraction")
 
-        if not title_tag or not price_tag:
+        if not title or not price:
             continue
 
         try:
-            price = float(
-                price_tag.text.replace(".", "").replace(",", ".")
-            )
+            value = float(price.text.replace(".", "").replace(",", "."))
         except ValueError:
             continue
 
-        if price > category["max_price"]:
+        if value > category["max_price"]:
             continue
 
         promos.append({
             "id": mlb_id,
-            "title": title_tag.text.strip(),
-            "price": price,
+            "title": title.text.strip(),
+            "price": value,
             "url": url,
             "category": category["name"]
         })
