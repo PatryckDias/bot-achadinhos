@@ -8,7 +8,10 @@ def main():
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
     for category in CATEGORIES:
+        print(f"[BOT] Buscando categoria: {category['name']}")
         promos = get_promos_from_category(category)
+        print(f"[BOT] Promos retornadas: {len(promos)}")
+
 
         for p in promos:
             msg = (
