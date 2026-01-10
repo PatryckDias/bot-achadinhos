@@ -1,12 +1,12 @@
 CATEGORIES = [
     {
         "name": "Acessórios Gamer",
-        "url": "https://lista.mercadolivre.com.br/acessorios-gamer_OrderId_PRICE",
-        "max_price": 600
+        "query": "acessorios gamer",
+        "min_discount": 25
     },
     {
-        "name": "Games PS5",
-        "url": "https://lista.mercadolivre.com.br/jogos-ps5_OrderId_PRICE",
-        "max_price": 300
+        "name": "Jogos PS5",
+        "query": "jogos ps5",
+        "min_discount": 25
     }
 ]
