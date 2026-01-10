@@ -1,12 +1,7 @@
-import sys
 import os
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from telegram import Bot
 from categories import CATEGORIES
 from scrapers.mercadolivre_categoria import get_promos_from_category
-
 
 def main():
     bot = Bot(token=os.getenv("TELEGRAM_TOKEN"))
@@ -21,9 +16,7 @@ def main():
             msg = (
                 f"🔥 *PROMOÇÃO – {p['category']}*\n\n"
                 f"{p['title']}\n\n"
-                f"💸 De: R$ {p['old_price']:.2f}\n"
-                f"💰 Por: *R$ {p['price']:.2f}*\n"
-                f"📉 Desconto: {p['discount']}%\n\n"
+                f"💰 *R$ {p['price']:.2f}*\n"
                 f"🔗 {p['url']}"
             )
 
@@ -32,7 +25,6 @@ def main():
                 text=msg,
                 parse_mode="Markdown"
             )
-
 
 if __name__ == "__main__":
     main()
