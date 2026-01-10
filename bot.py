@@ -1,7 +1,12 @@
+import sys
 import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from telegram import Bot
 from categories import CATEGORIES
 from scrapers.mercadolivre_categoria import get_promos_from_category
+
 
 def main():
     bot = Bot(token=os.getenv("TELEGRAM_TOKEN"))
@@ -11,7 +16,6 @@ def main():
         print(f"[BOT] Buscando categoria: {category['name']}")
         promos = get_promos_from_category(category)
         print(f"[BOT] Promos retornadas: {len(promos)}")
-
 
         for p in promos:
             msg = (
@@ -23,12 +27,12 @@ def main():
                 f"🔗 {p['url']}"
             )
 
-
             bot.send_message(
                 chat_id=chat_id,
                 text=msg,
                 parse_mode="Markdown"
             )
+
 
 if __name__ == "__main__":
     main()
