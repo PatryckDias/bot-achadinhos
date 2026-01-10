@@ -2,9 +2,18 @@ import requests
 import json
 from pathlib import Path
 
+API_URL = "https://api.mercadolibre.com/sites/MLB/search"
 CACHE_FILE = Path("sent_cache.json")
 
-API_URL = "https://api.mercadolibre.com/sites/MLB/search"
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/json",
+    "Accept-Language": "pt-BR,pt;q=0.9"
+}
 
 
 def load_cache():
@@ -27,9 +36,15 @@ def get_promos_from_category(category):
         "limit": 20
     }
 
-    response = requests.get(API_URL, params=params, timeout=30)
+    response = requests.get(
+        API_URL,
+        params=params,
+        headers=HEADERS,
+        timeout=30
+    )
+
     if response.status_code != 200:
-        print("[ML API] Erro HTTP", response.status_code)
+        print("[ML API] Erro HTTP:", response.status_code)
         return promos
 
     data = response.json()
@@ -38,9 +53,9 @@ def get_promos_from_category(category):
     print(f"[ML API] Resultados encontrados: {len(results)}")
 
     for item in results:
-        mlb_id = item["id"]
+        mlb_id = item.get("id")
 
-        if mlb_id in sent_cache:
+        if not mlb_id or mlb_id in sent_cache:
             continue
 
         price = item.get("price")
@@ -67,4 +82,5 @@ def get_promos_from_category(category):
         sent_cache.add(mlb_id)
 
     save_cache(sent_cache)
+    print(f"[ML API] Promos válidas: {len(promos)}")
     return promos
