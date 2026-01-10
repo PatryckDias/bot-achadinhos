@@ -1,88 +1,43 @@
 import requests
-import json
-import re
-from bs4 import BeautifulSoup
-from pathlib import Path
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Linux; Android 10)",
-    "Accept-Language": "pt-BR,pt;q=0.9"
+    "User-Agent": "Mozilla/5.0",
+    "Accept": "application/json"
 }
 
-CACHE_FILE = Path("sent_cache.json")
+def get_promos_from_search(category):
+    params = {
+        "q": category["query"],
+        "limit": 10,
+        "sort": "price_asc"
+    }
 
-
-def load_cache():
-    if CACHE_FILE.exists():
-        return set(json.loads(CACHE_FILE.read_text()))
-    return set()
-
-
-def save_cache(cache):
-    CACHE_FILE.write_text(json.dumps(list(cache)))
-
-
-def get_promos_from_category(category):
-    sent_cache = load_cache()
-    promos = []
-
-    print(f"[ML MOBILE] Acessando: {category['url']}")
-
-    response = requests.get(
-        category["url"],
+    r = requests.get(
+        "https://api.mercadolibre.com/sites/MLB/search",
         headers=HEADERS,
-        timeout=30
+        params=params,
+        timeout=20
     )
 
-    if response.status_code != 200:
-        print(f"[ML MOBILE] Erro HTTP: {response.status_code}")
-        return promos
+    if r.status_code != 200:
+        print(f"[ML API] Erro HTTP: {r.status_code}")
+        return []
 
-    soup = BeautifulSoup(response.text, "html.parser")
+    data = r.json()
+    promos = []
 
-    items = soup.select("a.ui-search-item__group__element")
+    for item in data.get("results", []):
+        price = item.get("price", 0)
 
-    print(f"[ML MOBILE] Itens encontrados: {len(items)}")
-
-    for item in items:
-        url = item.get("href")
-        if not url:
-            continue
-
-        mlb_match = re.search(r"MLB\d+", url)
-        if not mlb_match:
-            continue
-
-        mlb_id = mlb_match.group()
-
-        if mlb_id in sent_cache:
-            continue
-
-        title = item.select_one("h2")
-        price = item.select_one("span.price-tag-fraction")
-
-        if not title or not price:
-            continue
-
-        try:
-            value = float(price.text.replace(".", "").replace(",", "."))
-        except:
-            continue
-
-        if value > category["max_price"]:
+        if price > category["max_price"]:
             continue
 
         promos.append({
-            "id": mlb_id,
-            "title": title.text.strip(),
-            "price": value,
-            "url": url,
+            "id": item["id"],
+            "title": item["title"],
+            "price": price,
+            "url": item["permalink"],
             "category": category["name"]
         })
-
-        sent_cache.add(mlb_id)
-
-    save_cache(sent_cache)
-    print(f"[ML MOBILE] Promos válidas: {len(promos)}")
 
     return promos
