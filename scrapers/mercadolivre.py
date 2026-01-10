@@ -13,7 +13,7 @@ HEADERS = {
 }
 
 
-def get_ml_price(url): str) -> dict | None:
+def get_ml_price(url):
     """
     Busca título, preço atual e preço antigo (se existir)
     de um produto do Mercado Livre.
@@ -31,21 +31,18 @@ def get_ml_price(url): str) -> dict | None:
     # ==============================
     # 🏷️ TÍTULO
     # ==============================
-    title = None
     h1 = soup.find("h1")
-    if h1:
-        title = h1.get_text(strip=True)
-
-    if not title:
+    if not h1:
         print("[Mercado Livre] Título não encontrado")
         return None
+
+    title = h1.get_text(strip=True)
 
     # ==============================
     # 💰 PREÇO ATUAL
     # ==============================
     price = None
 
-    # 1️⃣ Meta tag (mais confiável)
     meta_price = soup.find("meta", {"itemprop": "price"})
     if meta_price and meta_price.get("content"):
         try:
@@ -53,13 +50,11 @@ def get_ml_price(url): str) -> dict | None:
         except ValueError:
             pass
 
-    # 2️⃣ JSON embutido
     if price is None:
         match = re.search(r'"price"\s*:\s*([0-9]+)', html)
         if match:
             price = float(match.group(1))
 
-    # 3️⃣ Fallback visual
     if price is None:
         span_price = soup.select_one("span.andes-money-amount__fraction")
         if span_price:
@@ -75,11 +70,10 @@ def get_ml_price(url): str) -> dict | None:
         return None
 
     # ==============================
-    # 💸 PREÇO ANTIGO (se existir)
+    # 💸 PREÇO ANTIGO
     # ==============================
     old_price = None
 
-    # Meta tag de preço original
     meta_old = soup.find("meta", {"itemprop": "originalPrice"})
     if meta_old and meta_old.get("content"):
         try:
@@ -87,7 +81,6 @@ def get_ml_price(url): str) -> dict | None:
         except ValueError:
             pass
 
-    # Fallback visual
     if old_price is None:
         old_span = soup.select_one(
             "span.andes-money-amount--previous "
@@ -101,9 +94,6 @@ def get_ml_price(url): str) -> dict | None:
             except ValueError:
                 pass
 
-    # ==============================
-    # 📦 RESULTADO FINAL
-    # ==============================
     return {
         "site": "Mercado Livre",
         "title": title,
