@@ -8,7 +8,7 @@ BASE_URL = "https://api.mercadolibre.com/sites/MLB/search"
 def get_ml_deals(query):
     params = {
         "q": query,
-        "limit": 20,
+        "limit": 10,
         "sort": "price_asc"
     }
 
