@@ -38,8 +38,12 @@ def get_promos_from_category(category):
     soup = BeautifulSoup(response.text, "html.parser")
 
     items = soup.select("li.ui-search-layout__item")
+    print(f"[ML] Itens encontrados na página: {len(items)}")
+
 
     for item in items:
+        print("[ML] Analisando item...")
+        
         link = item.select_one("a.ui-search-item__group__element")
         if not link:
             continue
@@ -80,4 +84,7 @@ def get_promos_from_category(category):
         sent_cache.add(mlb_id)
 
     save_cache(sent_cache)
+
+    print(f"[ML] Total de promos válidas: {len(promos)}")
+
     return promos
